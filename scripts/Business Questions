@@ -1,0 +1,180 @@
+/* Basic Business questions
+*/
+
+USE ops_performance;
+
+SELECT *
+FROM march_data;
+
+-- 1. ¿Cuántas llamadas hay en total? 
+SELECT COUNT(*) AS number_of_calls
+FROM march_data;
+
+-- 2. ¿Cuál es el rango de fechas del dataset? 
+SELECT 
+	MIN(call_date) AS starting_date,
+    MAX(call_date) AS ending_date
+FROM march_data;
+
+-- 3. ¿Cuántos asistentes únicos hay? 
+SELECT 
+COUNT(DISTINCT advisor) AS number_of_advisors
+FROM march_data;
+
+-- 4. ¿Cuántas áreas diferentes existen?
+SELECT 
+COUNT(DISTINCT department) AS number_of_departments
+FROM march_data;
+ 
+-- 5. ¿Cuál es la duración promedio de las llamadas? 
+SELECT ROUND(AVG(aht), 2) AS avg_aht
+FROM march_data;
+
+-- 6. ¿Cuál es la velocidad de respuesta promedio? 
+SELECT ROUND(AVG(sla), 2) AS avg_sla
+FROM march_data;
+
+-- 7. ¿Cuál es el índice de satisfacción promedio? 
+SELECT ROUND(AVG(nps), 2) AS avg_nps
+FROM march_data;
+
+-- 8. ¿Cuántas llamadas fueron respondidas vs no respondidas? 
+SELECT
+	call_answered,
+	COUNT(id_call) AS number_of_calls
+FROM march_data
+GROUP BY call_answered;
+
+-- 9. ¿Cuántas llamadas fueron resueltas vs no resueltas? 
+SELECT
+	query_resolved,
+	COUNT(id_call) AS number_of_calls
+FROM march_data
+GROUP BY query_resolved;
+
+-- 10. Identifica si existen valores nulos en columnas clave 
+SELECT
+    COUNT(*) AS total_rows,
+    SUM(CASE WHEN id_call IS NULL THEN 1 ELSE 0 END) AS id_call_nulls,
+    SUM(CASE WHEN call_date IS NULL THEN 1 ELSE 0 END) AS call_date_nulls,
+    SUM(CASE WHEN advisor IS NULL THEN 1 ELSE 0 END) AS advisor_nulls,
+    SUM(CASE WHEN department IS NULL THEN 1 ELSE 0 END) AS department_nulls,
+    SUM(CASE WHEN call_answered IS NULL THEN 1 ELSE 0 END) AS call_answered_nulls,
+    SUM(CASE WHEN query_resolved IS NULL THEN 1 ELSE 0 END) AS query_resolved_nulls,
+    SUM(CASE WHEN sla IS NULL THEN 1 ELSE 0 END) AS sla_nulls,
+    SUM(CASE WHEN call_duration IS NULL THEN 1 ELSE 0 END) AS call_duration_nulls,
+    SUM(CASE WHEN aht IS NULL THEN 1 ELSE 0 END) AS aht_nulls,
+    SUM(CASE WHEN nps IS NULL THEN 1 ELSE 0 END) AS nps_nulls
+FROM march_data;
+
+/* 
+====================================================================
+Intermediate Business questions
+====================================================================
+*/
+
+-- 1. ¿Cuál es la tasa de resolución general? 
+SELECT
+	ROUND((SUM(CASE WHEN query_resolved = 'Sí' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2) AS general_resolution
+FROM march_data;
+
+-- 2. ¿Cuál es la tasa de respuesta general? 
+SELECT
+	ROUND((SUM(CASE WHEN call_answered = 'Sí' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2) AS percentage_of_answered_calls
+FROM march_data;
+
+-- 3. ¿Qué área tiene mayor número de llamadas? 
+SELECT 
+	department, 
+	COUNT(id_call) AS number_of_calls
+FROM march_data
+GROUP BY department
+ORDER BY COUNT(id_call) DESC
+LIMIT 1;
+
+-- 4.¿Qué área tiene menor satisfacción promedio? 
+SELECT
+	department, 
+	ROUND(AVG(nps), 2) AS avg_nps
+FROM march_data
+GROUP BY department
+ORDER BY ROUND(AVG(nps), 2) ASC
+LIMIT 1;
+
+-- 5. ¿Qué asistente tiene mayor número de llamadas atendidas? 
+SELECT 
+	advisor, 
+	COUNT(id_call) AS number_of_calls
+FROM march_data
+GROUP BY advisor
+ORDER BY COUNT(id_call) DESC
+LIMIT 1;
+
+-- 6. ¿Qué asistente tiene mejor índice de satisfacción promedio? 
+SELECT
+	advisor,
+	ROUND(AVG(nps), 2) AS avg_nps
+FROM march_data
+GROUP BY advisor
+ORDER BY 2 DESC;
+
+-- 7. ¿Existe diferencia en duración promedio entre áreas? 
+SELECT
+	department, 
+	ROUND(AVG(aht), 2) AS avg_aht
+FROM march_data
+GROUP BY 1
+ORDER BY 2;
+
+-- 8. ¿Cómo varía la satisfacción según si la llamada fue resuelta o no? 
+SELECT
+query_resolved, 
+AVG(nps) AS avg_nps
+FROM march_data
+GROUP BY 1
+ORDER BY 2 DESC;
+
+-- 9. ¿Cuáles son los días con mayor volumen de llamadas? 
+SELECT
+	DAYNAME(call_date) AS day_of_the_week,
+    COUNT(id_call) AS number_of_calls
+FROM march_data
+GROUP BY 1
+ORDER BY 2 DESC;
+
+-- 10. ¿Hay relación entre velocidad de respuesta y satisfacción? 
+SELECT
+CASE 
+	WHEN sla <= 60 THEN 'Met'
+    WHEN sla <= 80 THEN 'Caution'
+    ELSE 'Bad'
+END AS sla_buckets,
+AVG(nps) AS avg_nps,
+COUNT(id_call) AS number_of_calls
+FROM march_data
+GROUP BY 1
+ORDER BY 2 DESC;
+
+/* 
+====================================================================
+Advanced Business questions
+====================================================================
+*/
+
+-- 1. ¿Qué área presenta el peor desempeño general considerando resolución y satisfacción? 
+SELECT
+	department,
+    ROUND(SUM(CASE WHEN query_resolved = 'Sí' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) AS avg_resolution_rate,
+    AVG(nps)
+FROM march_data
+GROUP BY 1
+ORDER BY 2;
+
+-- 2. ¿Qué asistentes tienen buen volumen pero baja satisfacción? 
+SELECT
+	advisor, 
+    COUNT(*) AS number_of_calls,
+    AVG(nps) AS avg_nps
+FROM march_data
+GROUP BY 1
+ORDER BY 2 DESC;
