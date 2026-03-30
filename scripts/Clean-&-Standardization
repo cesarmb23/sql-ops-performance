@@ -1,0 +1,39 @@
+/*
+===================================================================================================
+Prepare the data: Data Cleaning & Standardization
+===================================================================================================
+Script Purpose: The purpose of this script is to create a view with clean & standardized data
+				to ensure data accuracy and have everyone in the team using it
+===================================================================================================
+*/
+
+USE ops_performance;
+
+SELECT *
+FROM march;
+
+DROP VIEW IF EXISTS ops_performance.march_data;
+CREATE VIEW ops_performance.march_data AS 
+SELECT 
+	id_call,
+    call_date,
+    YEAR(call_date) AS year,
+    MONTH(call_date) AS month,
+    DAY(call_date) AS day,
+	REPLACE(advisor, '.', '') AS advisor,
+    CONCAT(UPPER(LEFT(department, 1)), LOWER(SUBSTRING(department, 2))) AS department,
+    LEFT(answered_resolved, 2) AS call_answered, 
+    CASE
+		WHEN RIGHT(answered_resolved, 1) = 'S' THEN 'Sí'
+        WHEN RIGHT(answered_resolved, 1) = 'N' THEN 'No'
+        ELSE answered_resolved
+	END AS query_resolved,
+    CAST(sla AS SIGNED) AS sla,
+    CAST(call_duration AS TIME) AS call_duration,
+    aht,
+    nps
+FROM march;
+
+-- Confirm info was correctly added to march_date view
+SELECT *
+FROM march_data;
