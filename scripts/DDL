@@ -1,0 +1,27 @@
+/*
+==========================================================
+DDL: Create schema and table
+==========================================================
+*/
+
+DROP SCHEMA IF EXISTS ops_performance;
+CREATE SCHEMA ops_performance;
+
+DROP TABLE IF EXISTS ops_performance.march;
+CREATE TABLE ops_performance.march (
+	id_call VARCHAR(10),
+    call_date DATE,
+    advisor VARCHAR(20),
+    department VARCHAR(20),
+    answered_resolved VARCHAR (15),
+    sla VARCHAR(15),
+    call_duration VARCHAR (15),
+    aht INT,
+    nps INT
+);
+
+USE ops_performance;
+
+-- Quality check to confirm number of rows are correct
+SELECT COUNT(*)
+FROM march;
